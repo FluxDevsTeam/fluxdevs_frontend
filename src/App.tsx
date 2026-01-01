@@ -1,46 +1,29 @@
-import { BrowserRouter,Routes,Route } from 'react-router-dom'
-import Navbar from './Components/Navbar'
-import Footer from './Components/Footer'
-import Contact from './Pages/Contact'
-import Homepage from './Pages/Homepage'
-import About from './Pages/About'
-import Services from './Pages/Services'
-import Projects from './Pages/Projects'
-import './App.css'
-import './fonts.css';
-import { useEffect } from 'react';
-import { useDarkMode } from './Components/Context'
-import ScrollToTop from './Components/ScrollToTop'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './Components/Navbar';
+import Footer from './Components/Footer';
+import Home from './Pages/Home';
+import About from './Pages/About';
+import Services from './Pages/Services';
+import Contact from './Pages/Contact';
+import Portfolio from './Pages/Portfolio';
+import ScrollToTop from './Components/ScrollToTop';
+import { NavbarProvider } from './Components/Context';
 
+const App = () => (
+  <Router>
+    <NavbarProvider>
+      <ScrollToTop />
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
+      <Footer />
+    </NavbarProvider>
+  </Router>
+);
 
-function App() {
-  const { darkMode } = useDarkMode();
-
-  useEffect(() => {
-    if (darkMode) {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
-    }
-  }, [darkMode]);
-
-  return (
-    
-    <div >
-    <BrowserRouter >
-    <ScrollToTop />
-    <Navbar />
-    <Routes >
-       <Route  path ="/" element={<Homepage />} />
-       <Route  path ="/about" element={<About />} />
-       <Route  path ="/services" element={<Services />} />
-       <Route  path ="/projects" element={<Projects />} />
-       <Route  path ="/contact" element={<Contact />} />
-       </Routes>
-       <Footer />
-       </BrowserRouter>
-    </div>
-  )
-}
-
-export default App
+export default App;
