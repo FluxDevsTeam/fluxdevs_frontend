@@ -1,106 +1,123 @@
-import { useState, useEffect, useRef } from 'react';
-import logo from '/images/Component 5.png'
-import dark from '/images/Frame.png'
-import toggle from '/images/toggle.png'
-import close from '/images/close.png'
-import { Link , useLocation} from 'react-router-dom';
-import light from '/images/frm.png'
-import { useDarkMode } from './Context';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useNavbar } from './Context';
 
-export default function Navbar() {
-    const [isOpen, setIsOpen] = useState(false);
-    const { darkMode, toggleDarkMode } = useDarkMode();
-    const location = useLocation();
-    const navbarRef = useRef<HTMLDivElement>(null);
+// Simplified nav: only main pages
+const navItems = [
+  { label: 'Home', to: '/' },
+  { label: 'Services', to: '/services' },
+  { label: 'Portfolio', to: '/portfolio' },
+  { label: 'About Us', to: '/about' },
+  { label: 'Contact Us', to: '/contact' },
+];
 
-    const toggleMenu = () => {
-        setIsOpen(!isOpen);
+const Navbar = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const { isNavbarVisible, setIsNavbarVisible } = useNavbar();
+  const lastScrollY = useRef(window.scrollY);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setScrolled(currentScrollY > 10);
+      if (currentScrollY > lastScrollY.current && currentScrollY > 200) {
+        setIsNavbarVisible(false);
+      } else {
+        setIsNavbarVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
     };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [setIsNavbarVisible]);
 
-    const isActiveLink = (path: string) => {
-      return location.pathname === path;
-    };
+  const isOpaque = hovered || scrolled;
+  const navBg = isOpaque ? 'bg-white shadow-md border-b border-gray-100' : 'bg-transparent';
+  const navTransition = 'transition-all duration-300 ease-in-out';
+  const navPosition = 'fixed left-0 top-0 w-full';
+  const navTransform = isNavbarVisible ? 'translate-y-0' : '-translate-y-full';
+  const textColor = isOpaque ? 'text-[#1a1a1a]' : 'text-white';
+  
+  const headerBg = navBg;
 
-    useEffect(() => {
-        const handleOutsideClick = (event: MouseEvent) => {
-            if (navbarRef.current && !navbarRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
+  return (
+    <header
+      className={`${navPosition} ${navTransform} z-50 ${headerBg} ${navTransition}`}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{ fontFamily: 'Euclid Circular A, Inter, Arial, sans-serif' }}
+    >
+      <nav
+        className={`max-w-7xl mx-auto flex items-center justify-between py-0 px-0 h-[72px] ${textColor}`}
+        style={{ height: '72px' }}
+      >
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-4 h-full flex-shrink-0">
+          <img
+            src="/public/images/Component 5.png"
+            alt="Fluxdevs Logo"
+            className={`h-6 w-auto ${!isOpaque ? 'brightness-0 invert' : ''}`}
+          />
+          <span className={`uppercase tracking-[0.14em] font-bold text-[14px] ${textColor}`}>FLUXDEVS</span>
+        </Link>
+        {/* Desktop Nav */}
+        <ul className="hidden md:flex gap-4 md:gap-5 lg:gap-6 items-center h-full ">
+          {navItems.map((item) => (
+            <li key={item.to} className="relative flex items-center h-full">
+              <Link
+                to={item.to}
+                className={`px-6 py-2 uppercase tracking-[0.14em] font-bold text-[14px] ${textColor} hover:text-[#2176ff] transition border-b-2 border-transparent hover:border-[#2176ff] h-full flex items-center gap-1`}
+                style={{ fontFamily: 'Euclid Circular A, Inter, Arial, sans-serif', letterSpacing: '0.14em', height: '72px', display: 'flex', alignItems: 'center' }}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {/* CTA */}
+        <Link
+          to="/contact"
+          className="hidden md:inline-block font-bold text-[13px] uppercase tracking-[0.14em] px-3 py-2 bg-[#2176ff] text-white rounded shadow hover:bg-[#0056d6] transition"
+          style={{ letterSpacing: '0.14em', fontFamily: 'Euclid Circular A, Inter, Arial, sans-serif' }}
+        >
+          CONTACT US
+        </Link>
+        {/* Mobile Menu Button */}
+        <div className="md:hidden">
+          <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="focus:outline-none">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d={mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16m-7 6h7'}
+              />
+            </svg>
+          </button>
+        </div>
+      </nav>
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100 shadow-md">
+          <ul className="flex flex-col py-2">
+            {navItems.map((item) => (
+              <li key={item.to}>
+                <Link
+                  to={item.to}
+                  className="block px-6 py-3 text-[#1a1a1a] hover:text-[#2176ff] hover:bg-[#f7fafd]"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </header>
+  );
+};
 
-        document.addEventListener('mousedown', handleOutsideClick);
-
-        return () => {
-            document.removeEventListener('mousedown', handleOutsideClick);
-        };
-    }, []);
-
-    return (
-        <nav ref={navbarRef} className='w-full fixed top-0 left-0 right-0 z-50 h-[88px] flex justify-between items-center border-none border-gray-200 shadow-lg px-4 dark:bg-neutral-900 bg-white'>
-            <div className='flex items-center'>
-                <img src={logo} alt='logo' className="mr-2" />
-                <h1 className='text-[24px] leading-[36px] font-semibold text-customBlue dark:text-white'>Fluxdev</h1>
-            </div>
-
-            <ul className='hidden lg:flex space-x-8 text-[24px] leading-[36px] font-raleway dark:text-darkGray font-medium'>
-               <Link to="/" className={`p-2 ${isActiveLink('/') ? 'text-yellow-500' : 'text-black'} ${isActiveLink('/') ? 'dark:text-yellow-500' : 'dark:text-white'}`}>
-                <li>Home</li>
-               </Link>
-               <Link to="/About" className={`p-2 ${isActiveLink('/About') ? 'text-yellow-500' : 'text-black'} ${isActiveLink('/About') ? 'dark:text-yellow-500' : 'dark:text-white'}`}>
-                <li>About us</li>
-               </Link>
-               <Link to="/Services" className={`p-2 ${isActiveLink('/Services') ? 'text-yellow-500' : 'text-black'} ${isActiveLink('/Services') ? 'dark:text-yellow-500' : 'dark:text-white'}`}>
-                <li>Services</li>
-               </Link>
-               <Link to="/Projects" className={`p-2 ${isActiveLink('/Projects') ? 'text-yellow-500' : 'text-black'} ${isActiveLink('/Projects') ? 'dark:text-yellow-500' : 'dark:text-white'}`}>
-                <li>Our Projects</li>
-               </Link>
-            </ul>
-
-            <div className='hidden lg:flex items-center'>
-                {darkMode ? (
-                    <button onClick={toggleDarkMode}>
-                        <img src={light} alt='dark-icon' className="mr-4" />
-                    </button>
-                ) : (
-                    <button onClick={toggleDarkMode}>
-                        <img src={dark} alt='dark-icon' className="mr-4" />
-                    </button>
-                )}
-            <Link to="/Contact" >   <button className='w-[139px] h-[46px] bg-customBlue hover:bg-opacity-70 text-white font-raleway rounded-lg'>Contact Us</button></Link>
-            </div>
-
-            <button className="lg:hidden" onClick={toggleMenu}>
-                <img src={toggle} alt="toggle" />
-            </button>
-
-            {isOpen && (
-                <div className="lg:hidden fixed right-0 top-[88px] w-[60%] h-[calc(100vh-88px)] bg-white shadow-md z-40 overflow-y-auto dark:bg-neutral-900">
-                    <div className='flex justify-center items-center space-x-4 p-4 '>
-                        {darkMode ? (
-                            <button className='space-x-2 font-bold flex justify-center items-center' onClick={toggleDarkMode}>
-                                <img src={light} alt='dark-icon' className="mr-4" /> 
-                                <p className='p-2 border rounded-lg bg-darkGray text-neutral-900 font-raleway'>Dark Mode</p>
-                            </button>
-                        ) : (
-                            <button className='space-x-2 font-bold flex justify-center items-center' onClick={toggleDarkMode}>
-                                <img src={dark} alt='dark-icon' className="mr-4" /> 
-                                <p className='p-2 border rounded-lg bg-customBlue text-darkGray font-raleway'>Light Mode</p>
-                            </button>
-                        )}
-                    </div> 
-                    <ul className='flex flex-col space-y-5 p-4 text-[18px] leading-[24px] dark:text-darkGray font-normal font-raleway'>
-                        <Link to='/' onClick={toggleMenu}><li>Home</li></Link>
-                        <Link to='/About' onClick={toggleMenu}><li>About us</li></Link>
-                        <Link to='/Services' onClick={toggleMenu}><li>Services</li></Link>
-                        <Link to='/Projects' onClick={toggleMenu}><li>Our Projects</li></Link>
-                        <Link to="/Contact" > <li onClick={toggleMenu}>Contact</li></Link>
-                    </ul>
-                    <button onClick={toggleMenu} className="pl-2">
-                        <img src={close} alt="close toggle" style={{ filter: darkMode ? 'invert(1)' : 'none' }}/>
-                    </button>
-                </div>
-            )}
-        </nav>
-    )
-}
+export default Navbar;
